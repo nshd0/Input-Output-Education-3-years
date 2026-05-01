@@ -1,0 +1,10 @@
+{
+  "name": "BalVatika: Foundational Learning",
+  "description": "A playful learning companion for the Indian foundational stage (Ages 3-8), aligned with NEP 2020 and NCF. Features interactive modules for literacy, numeracy, and environmental awareness.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "AI-powered storytelling",
+    "Interactive learning games",
+    "Curriculum-aligned modules"
+  ]
+}
