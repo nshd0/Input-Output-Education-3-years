@@ -47,7 +47,138 @@ export default function App() {
   const [stars, setStars] = useState(120);
   const [completedModuleIds, setCompletedModuleIds] = useState<string[]>([]);
   const [showReward, setShowReward] = useState(false);
+  const [showBadgeAlert, setShowBadgeAlert] = useState(false);
+  const [lastBadge, setLastBadge] = useState<Module | null>(null);
   const [answerStatus, setAnswerStatus] = useState<'idle' | 'correct' | 'incorrect'>('idle');
+
+  const MODULE_CHALLENGES: Record<string, { 
+    question: string; 
+    options: { emoji: string; text: string; isCorrect: boolean }[];
+    category: string;
+  }> = {
+    'colors': {
+      category: 'Art Focus',
+      question: 'Which one is RED?',
+      options: [
+        { emoji: '🍎', text: 'Red Apple', isCorrect: true },
+        { emoji: '🥦', text: 'Green Broccoli', isCorrect: false }
+      ]
+    },
+    'shapes': {
+      category: 'Math Focus',
+      question: 'Which one is a CIRCLE?',
+      options: [
+        { emoji: '⚽', text: 'Round Ball', isCorrect: true },
+        { emoji: '🪟', text: 'Square Window', isCorrect: false }
+      ]
+    },
+    'sounds': {
+      category: 'World Focus',
+      question: 'Which animal says MEOW?',
+      options: [
+        { emoji: '🐱', text: 'The Cat', isCorrect: true },
+        { emoji: '🐶', text: 'The Dog', isCorrect: false }
+      ]
+    },
+    'phonics': {
+      category: 'Literacy Focus',
+      question: 'Which one starts with sound "A"?',
+      options: [
+        { emoji: '🐜', text: 'Ant', isCorrect: true },
+        { emoji: '🍌', text: 'Banana', isCorrect: false }
+      ]
+    },
+    'counting': {
+      category: 'Math Focus',
+      question: 'Which shows ONE object?',
+      options: [
+        { emoji: '🦁', text: 'One Lion', isCorrect: true },
+        { emoji: '🍒', text: 'Two Cherries', isCorrect: false }
+      ]
+    },
+    'nature-explore': {
+      category: 'Science Focus',
+      question: 'Where is the SUN?',
+      options: [
+        { emoji: '☀️', text: 'The Sky', isCorrect: true },
+        { emoji: '🐚', text: 'The Sea', isCorrect: false }
+      ]
+    },
+    'nature': {
+      category: 'World Focus',
+      question: 'Which one is a WATER animal?',
+      options: [
+        { emoji: '🐟', text: 'The Fish', isCorrect: true },
+        { emoji: '🐒', text: 'The Monkey', isCorrect: false }
+      ]
+    },
+    'words': {
+      category: 'Literacy Focus',
+      question: 'Which is a "CAT"?',
+      options: [
+        { emoji: '🐈', text: 'C-A-T', isCorrect: true },
+        { emoji: '🛖', text: 'H-U-T', isCorrect: false }
+      ]
+    },
+    'math-basic': {
+      category: 'Math Focus',
+      question: '1 + 1 is how many?',
+      options: [
+        { emoji: '✌️', text: 'Two', isCorrect: true },
+        { emoji: '☝️', text: 'One', isCorrect: false }
+      ]
+    },
+    'science-seeds': {
+      category: 'Science Focus',
+      question: 'What do seeds need to grow?',
+      options: [
+        { emoji: '💧', text: 'Water', isCorrect: true },
+        { emoji: '🪵', text: 'Stick', isCorrect: false }
+      ]
+    },
+    'ourselves': {
+      category: 'World Focus',
+      question: 'Which one do we use to SMELL?',
+      options: [
+        { emoji: '👃', text: 'The Nose', isCorrect: true },
+        { emoji: '👂', text: 'The Ear', isCorrect: false }
+      ]
+    },
+    'reading': {
+      category: 'Literacy Focus',
+      question: 'Which is a "BOOK"?',
+      options: [
+        { emoji: '📖', text: 'Book', isCorrect: true },
+        { emoji: '✏️', text: 'Pencil', isCorrect: false }
+      ]
+    },
+    'math-logic': {
+      category: 'Math Focus',
+      question: 'What comes next? 🔴 🔵 🔴 ...',
+      options: [
+        { emoji: '🔵', text: 'Blue', isCorrect: true },
+        { emoji: '🔴', text: 'Red', isCorrect: false }
+      ]
+    },
+    'money': {
+      category: 'Math Focus',
+      question: 'Which one is a COIN?',
+      options: [
+        { emoji: '🪙', text: 'Coin', isCorrect: true },
+        { emoji: '📄', text: 'Paper', isCorrect: false }
+      ]
+    },
+    'community': {
+      category: 'World Focus',
+      question: 'Who helps us when we are sick?',
+      options: [
+        { emoji: '👩‍⚕️', text: 'The Doctor', isCorrect: true },
+        { emoji: '👩‍🍳', text: 'The Chef', isCorrect: false }
+      ]
+    }
+  };
+
+  const currentChallenge = activeModule ? MODULE_CHALLENGES[activeModule.id] : null;
 
   const offlineTips = [
     { title: 'Nature Sorting', description: 'Collect different leaves and stones. Ask the child to sort them by size and color.', area: 'Panchakosha' },
@@ -69,21 +200,48 @@ export default function App() {
   ];
 
   // Mock progress data for the Parent Dashboard
-  const progressStats = [
-    { label: 'Literacy', value: completedModuleIds.filter(id => id.includes('phonics') || id.includes('words') || id.includes('reading')).length * 33 + 10, color: 'bg-brand-red' },
-    { label: 'Numeracy', value: completedModuleIds.filter(id => id.includes('counting') || id.includes('math') || id.includes('money')).length * 33 + 10, color: 'bg-brand-purple' },
-    { label: 'Cognitive', value: 40, color: 'bg-brand-blue' },
-    { label: 'Physical', value: 20, color: 'bg-brand-green' },
-  ];
+  const progressStats = useMemo(() => {
+    const modules = STAGES.flatMap(s => s.modules);
+    const completed = modules.filter(m => completedModuleIds.includes(m.id));
+    
+    return [
+      { 
+        label: 'Literacy', 
+        value: Math.min(100, Math.round((completed.filter(m => m.type === 'literacy').length / 4) * 100)), 
+        color: 'bg-brand-red' 
+      },
+      { 
+        label: 'Math', 
+        value: Math.min(100, Math.round((completed.filter(m => m.type === 'math' || m.type === 'numeracy').length / 5) * 100)), 
+        color: 'bg-brand-purple' 
+      },
+      { 
+        label: 'Science', 
+        value: Math.min(100, Math.round((completed.filter(m => m.type === 'science').length / 2) * 100)), 
+        color: 'bg-brand-blue' 
+      },
+      { 
+        label: 'World & Art', 
+        value: Math.min(100, Math.round((completed.filter(m => m.type === 'world' || m.type === 'art').length / 5) * 100)), 
+        color: 'bg-brand-green' 
+      },
+    ];
+  }, [completedModuleIds]);
 
   const handleCompleteLevel = () => {
     playPopSound();
     setStars(prev => prev + 10);
+    
     if (activeModule && !completedModuleIds.includes(activeModule.id)) {
       setCompletedModuleIds(prev => [...prev, activeModule.id]);
+      setLastBadge(activeModule);
+      setShowBadgeAlert(true);
+      speakText(`Shandaar! You earned the ${activeModule.title} badge!`);
+      setTimeout(() => setShowBadgeAlert(false), 4000);
+    } else {
+      setShowReward(true);
+      setTimeout(() => setShowReward(false), 3000);
     }
-    setShowReward(true);
-    setTimeout(() => setShowReward(false), 3000);
   };
 
   const handleAnswer = (isCorrect: boolean) => {
@@ -591,6 +749,34 @@ export default function App() {
                     <div className="bg-brand-yellow px-4 py-1 rounded-full text-text-dark font-black text-xl">+10 STARS!</div>
                   </motion.div>
                 )}
+                {showBadgeAlert && lastBadge && (
+                  <motion.div 
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 1.2, opacity: 0 }}
+                    className="absolute z-[60] inset-0 flex items-center justify-center pointer-events-none bg-white/40 backdrop-blur-sm"
+                  >
+                    <motion.div 
+                      animate={{ rotate: [0, -5, 5, -5, 5, 0] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className="bg-white rounded-[50px] border-8 border-brand-yellow shadow-2xl p-12 flex flex-col items-center space-y-6"
+                    >
+                      <div className="w-32 h-32 bg-brand-yellow rounded-full flex items-center justify-center text-6xl shadow-inner">
+                        {(() => {
+                           const Icon = ICON_MAP[lastBadge.icon] || BookOpen;
+                           return <Icon className="w-16 h-16 text-text-dark" />;
+                        })()}
+                      </div>
+                      <div>
+                        <h4 className="text-brand-red font-black text-4xl uppercase italic tracking-tighter">New Badge Earned!</h4>
+                        <p className="text-text-dark text-2xl font-black mt-2">{lastBadge.title}</p>
+                      </div>
+                      <div className="bg-brand-green text-white px-6 py-2 rounded-full font-black uppercase text-sm tracking-widest">
+                        Excellent Work!
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
               </AnimatePresence>
               <div className={`w-40 h-40 rounded-[40px] bg-white border-8 border-brand-purple flex items-center justify-center animate-bounce shadow-2xl transform rotate-12`}>
                 {(() => {
@@ -618,63 +804,58 @@ export default function App() {
               </div>
 
               {/* Interactive Challenge Section */}
-              <motion.div 
-                animate={answerStatus === 'incorrect' ? { x: [0, -10, 10, -10, 10, 0] } : {}}
-                className={`w-full max-w-2xl p-10 rounded-[40px] border-4 transition-all ${
-                  answerStatus === 'correct' ? 'border-brand-green bg-brand-green/5' : 
-                  answerStatus === 'incorrect' ? 'border-brand-red bg-brand-red/5' : 
-                  'border-gray-100 bg-gray-50'
-                }`}
-              >
-                <div className="space-y-8">
-                  <div className="text-center">
-                    <span className="text-sm font-black text-text-muted uppercase tracking-[0.2em] block mb-2">Panchakosha Challenge</span>
-                    <h4 className="text-3xl font-black text-text-dark">Which one makes our body strong?</h4>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-6">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleAnswer(true)}
-                      className={`p-8 rounded-3xl border-4 flex flex-col items-center gap-4 transition-all relative overflow-hidden ${
-                         answerStatus === 'correct' ? 'border-brand-green bg-white' : 'border-white bg-white hover:border-brand-purple shadow-sm'
-                      }`}
-                    >
-                      {answerStatus === 'correct' && (
-                        <motion.div 
-                          initial={{ scale: 0 }} animate={{ scale: 1 }}
-                          className="absolute top-2 right-2 text-brand-green"
+              {currentChallenge && (
+                <motion.div 
+                  animate={answerStatus === 'incorrect' ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+                  className={`w-full max-w-2xl p-10 rounded-[40px] border-4 transition-all ${
+                    answerStatus === 'correct' ? 'border-brand-green bg-brand-green/5' : 
+                    answerStatus === 'incorrect' ? 'border-brand-red bg-brand-red/5' : 
+                    'border-gray-100 bg-gray-50'
+                  }`}
+                >
+                  <div className="space-y-8">
+                    <div className="text-center">
+                      <span className="text-sm font-black text-text-muted uppercase tracking-[0.2em] block mb-2">{currentChallenge.category}</span>
+                      <h4 className="text-3xl font-black text-text-dark">{currentChallenge.question}</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                      {currentChallenge.options.map((option, idx) => (
+                        <motion.button
+                          key={idx}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleAnswer(option.isCorrect)}
+                          className={`p-8 rounded-3xl border-4 flex flex-col items-center gap-4 transition-all relative overflow-hidden ${
+                             answerStatus === 'correct' && option.isCorrect ? 'border-brand-green bg-white' : 
+                             answerStatus === 'incorrect' && !option.isCorrect ? 'border-brand-red bg-white' :
+                             'border-white bg-white hover:border-brand-purple shadow-sm'
+                          }`}
                         >
-                          <CheckCircle2 className="w-8 h-8" />
-                        </motion.div>
-                      )}
-                      <div className="text-6xl">🍎</div>
-                      <span className="font-black text-text-dark uppercase tracking-tight">Fresh Apple</span>
-                    </motion.button>
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleAnswer(false)}
-                      className={`p-8 rounded-3xl border-4 flex flex-col items-center gap-4 transition-all relative overflow-hidden ${
-                         answerStatus === 'incorrect' ? 'border-brand-red bg-white' : 'border-white bg-white hover:border-brand-purple shadow-sm'
-                      }`}
-                    >
-                      {answerStatus === 'incorrect' && (
-                        <motion.div 
-                          initial={{ scale: 0 }} animate={{ scale: 1 }}
-                          className="absolute top-2 right-2 text-brand-red"
-                        >
-                          <AlertCircle className="w-8 h-8" />
-                        </motion.div>
-                      )}
-                      <div className="text-6xl">🍬</div>
-                      <span className="font-black text-text-dark uppercase tracking-tight">Sticky Candy</span>
-                    </motion.button>
+                          {answerStatus === 'correct' && option.isCorrect && (
+                            <motion.div 
+                              initial={{ scale: 0 }} animate={{ scale: 1 }}
+                              className="absolute top-2 right-2 text-brand-green"
+                            >
+                              <CheckCircle2 className="w-8 h-8" />
+                            </motion.div>
+                          )}
+                          {answerStatus === 'incorrect' && !option.isCorrect && (
+                            <motion.div 
+                              initial={{ scale: 0 }} animate={{ scale: 1 }}
+                              className="absolute top-2 right-2 text-brand-red"
+                            >
+                              <AlertCircle className="w-8 h-8" />
+                            </motion.div>
+                          )}
+                          <div className="text-6xl">{option.emoji}</div>
+                          <span className="font-black text-text-dark uppercase tracking-tight">{option.text}</span>
+                        </motion.button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              )}
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-3xl">
                 {[1, 2, 3, 4].map(level => (

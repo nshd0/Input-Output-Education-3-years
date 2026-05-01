@@ -11,7 +11,7 @@ export interface Module {
   icon: string;
   color: string;
   description: string;
-  type: 'literacy' | 'numeracy' | 'world' | 'art';
+  type: 'literacy' | 'numeracy' | 'world' | 'art' | 'science' | 'math';
 }
 
 export interface Stage {
@@ -34,7 +34,7 @@ export const STAGES: Stage[] = [
     description: 'Sensory exploration and cognitive play.',
     modules: [
       { id: 'colors', title: 'Color World', icon: 'Palette', color: 'bg-brand-red', description: 'Match and learn colors', type: 'art' },
-      { id: 'shapes', title: 'Shape Box', icon: 'Shapes', color: 'bg-brand-blue', description: 'Identify basic shapes', type: 'literacy' },
+      { id: 'shapes', title: 'Shape Box', icon: 'Shapes', color: 'bg-brand-blue', description: 'Identify basic shapes', type: 'math' },
       { id: 'sounds', title: 'Animal Sounds', icon: 'Volume2', color: 'bg-brand-yellow', description: 'Listen and mimic', type: 'world' }
     ]
   },
@@ -47,7 +47,8 @@ export const STAGES: Stage[] = [
     description: 'Foundational literacy and basic numeracy.',
     modules: [
       { id: 'phonics', title: 'ABC Phonics', icon: 'Languages', color: 'bg-brand-green', description: 'Letter sounds and traces', type: 'literacy' },
-      { id: 'counting', title: 'Number Train', icon: 'Hash', color: 'bg-brand-purple', description: 'Count 1 to 20', type: 'numeracy' },
+      { id: 'counting', title: 'Number Train', icon: 'Hash', color: 'bg-brand-purple', description: 'Count 1 to 20', type: 'math' },
+      { id: 'nature-explore', title: 'Sky & Stars', icon: 'Lightbulb', color: 'bg-brand-blue', description: 'Elementary science', type: 'science' },
       { id: 'nature', title: 'My Earth', icon: 'Leaf', color: 'bg-brand-blue', description: 'Plants and Animals', type: 'world' }
     ]
   },
@@ -60,7 +61,8 @@ export const STAGES: Stage[] = [
     description: 'Word building and combined operations.',
     modules: [
       { id: 'words', title: 'Word Builder', icon: 'BookOpen', color: 'bg-brand-red', description: 'Two and three-letter words', type: 'literacy' },
-      { id: 'math-basic', title: 'Add & Subtract', icon: 'PlusCircle', color: 'bg-brand-yellow', description: 'Basic math operations', type: 'numeracy' },
+      { id: 'math-basic', title: 'Add & Subtract', icon: 'PlusCircle', color: 'bg-brand-yellow', description: 'Basic math operations', type: 'math' },
+      { id: 'science-seeds', title: 'Tiny Seeds', icon: 'Leaf', color: 'bg-brand-blue', description: 'How plants grow', type: 'science' },
       { id: 'ourselves', title: 'My Body & Home', icon: 'User', color: 'bg-brand-green', description: 'Understanding self', type: 'world' }
     ]
   },
@@ -73,7 +75,8 @@ export const STAGES: Stage[] = [
     description: 'Fluent reading and analytical thinking.',
     modules: [
       { id: 'reading', title: 'Reading Time', icon: 'BookOpenCheck', color: 'bg-brand-purple', description: 'Fluent reading practice', type: 'literacy' },
-      { id: 'money', title: 'Money Magic', icon: 'Coins', color: 'bg-brand-yellow', description: 'Intro to Indian Rupee', type: 'numeracy' },
+      { id: 'math-logic', title: 'Pattern Wizard', icon: 'Shapes', color: 'bg-brand-yellow', description: 'Logical math sequences', type: 'math' },
+      { id: 'money', title: 'Money Magic', icon: 'Coins', color: 'bg-brand-yellow', description: 'Intro to Indian Rupee', type: 'math' },
       { id: 'community', title: 'Our Community', icon: 'Users', color: 'bg-brand-blue', description: 'Helpers and transport', type: 'world' }
     ]
   }
